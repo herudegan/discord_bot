@@ -57,5 +57,13 @@ if __name__ == "__main__":
     async def c_char(ctx):
         await responses.c_char(ctx)
 
+    @client.command(name="d_char")
+    async def d_char(ctx):
+        await responses.d_char(ctx)
+
+    @client.command(name="s_battle")
+    async def s_battle(ctx):
+        await responses.s_battle(ctx)
+
 client.run(TOKEN)
     
