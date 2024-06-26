@@ -1,5 +1,6 @@
 import music
 import responses
+import aichat
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -66,6 +67,11 @@ if __name__ == "__main__":
     @client.command(name="s_battle")
     async def s_battle(ctx):
         await responses.s_battle(ctx)
+
+    @client.command(name="ask")
+    async def ask_command(ctx, *, question):  
+        response = await aichat.ask(ctx, question)
+        await ctx.send(response)
 
 client.run(TOKEN)
     

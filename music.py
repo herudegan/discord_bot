@@ -31,7 +31,6 @@ async def play(ctx, link):
         print(e)
 
     try:
-
         if youtube_base_url not in link:
             query_string = urllib.parse.urlencode({
                 'search_query': link
