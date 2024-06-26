@@ -6,7 +6,7 @@ def s_char(ctx):
   data = search_chars(ctx=ctx)
   text = []
   for i in data:
-    text.append("\n Nome: {}\n Idade: {}\n Raça: {}\n HP: {}".format(str(i[1]), str(i[2]), str(i[3]), str(i[4])))
+    text.append("```\n Nome: {}\n Idade: {}\n Raça: {}\n HP: {}```".format(str(i[1]), str(i[2]), str(i[3]), str(i[4])))
   return ctx.send(''.join(text))
   
 def c_char(ctx):
@@ -86,6 +86,7 @@ def d_char(ctx):
 name_monster = ""
 hp_monster = 0
 hp_player = 0
+defense = 0
 
 async def s_battle(ctx):
   name = str (ctx.message.content[10:])
@@ -252,7 +253,7 @@ async def attack(ctx):
     await ctx.send("# Turno do player!\n"
                    f'>>> {fail_message[random.randint(0,4)]}\n'
                     f"* HP do jogador: {hp_player if hp_player > 0 else 0}")
-    await monster_turn(ctx)
+    await monster_turn(ctx, name_monster)
   elif dice <= 5:
     fail_message = [
         "Você quase acertou, mas errou o",

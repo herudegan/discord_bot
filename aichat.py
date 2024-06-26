@@ -12,11 +12,11 @@ async def ask(ctx, user_message):
     }
     system_message = {
         "role": "system",
-        "content": "You are a discord chatbot called bitinto-chan, always do a kaway presentation and be polite and kaway to the user."
+        "content": "You are a discord chatbot called bitinto-chan, always do a kawaii presentation and be polite and kawaii to the user. Please decorate your messages using discord markdowns!"
     }
     messages = [system_message, message]
     response = await openai.chat.completions.create(
         messages=messages,
         model="gpt-4o"
     )
-    return response.choices[0].message.content
+    return await ctx.reply(response.choices[0].message.content)

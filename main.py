@@ -70,8 +70,7 @@ if __name__ == "__main__":
 
     @client.command(name="ask")
     async def ask_command(ctx, *, question):  
-        response = await aichat.ask(ctx, question)
-        await ctx.send(response)
+        await aichat.ask(ctx, question)
 
 client.run(TOKEN)
     

@@ -60,7 +60,7 @@ async def clear_queue(ctx):
         queues[ctx.guild.id].clear()
         await ctx.send(f"Queue cleared by {ctx.author.mention}!")
     else:
-        await ctx.send(f"There is no music in the queue, {ctx.author.mention}!")
+        await ctx.reply(f"There is no music in the queue!")
 
 async def pause(ctx):
     try:
