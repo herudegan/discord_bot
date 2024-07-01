@@ -21,8 +21,8 @@ if __name__ == "__main__":
         print(f'I am online now!')
 
     @client.command(name="play")
-    async def play(ctx, url):
-        await music.play(ctx, url)
+    async def play(ctx, *, url):
+        await music.play(ctx, url=url)
 
     @client.command(name="c_queue")
     async def clear_queue(ctx):
@@ -41,8 +41,8 @@ if __name__ == "__main__":
         await music.stop(ctx)
     
     @client.command(name="queue")
-    async def queue(ctx, url):
-        await music.queue(ctx, url)
+    async def queue(ctx):
+        await music.queue(ctx)
 
     @client.command(name="skip")
     async def skip(ctx):
