@@ -12,13 +12,13 @@ if __name__ == "__main__":
     intents.message_content = True
     client = commands.Bot(command_prefix="?", intents=intents)
 
-    @client.event
-    async def on_ready():
-        print(f'I am online now!')
-
     @client.command(name="play")
-    async def play(ctx, url):
-        await music.play(ctx, url)
+    async def play(ctx, *, url):
+        await music.play(ctx, url=url)
+
+    @client.command(name="queue")
+    async def queue(ctx):
+        await music.queue(ctx)    
 
     @client.command(name="c_queue")
     async def clear_queue(ctx):
@@ -35,10 +35,6 @@ if __name__ == "__main__":
     @client.command(name="stop")
     async def stop(ctx):
         await music.stop(ctx)
-    
-    @client.command(name="queue")
-    async def queue(ctx, url):
-        await music.queue(ctx, url)
 
     @client.command(name="skip")
     async def skip(ctx):
