@@ -2,6 +2,7 @@ import music
 import responses
 import aichat
 import discord
+import social
 from discord.ext import commands
 from dotenv import load_dotenv
 import music
@@ -14,10 +15,11 @@ if __name__ == "__main__":
 
     intents = discord.Intents.default()
     intents.message_content = True
-    client = commands.Bot(command_prefix="?", intents=intents)
+    client = commands.Bot(command_prefix="/", intents=intents)
 
     @client.event
     async def on_ready():
+        await client.tree.sync()
         print(f'I am online now!')
 
     @client.command(name="play")
@@ -71,6 +73,16 @@ if __name__ == "__main__":
     @client.command(name="ask")
     async def ask_command(ctx, *, question):  
         await aichat.ask(ctx, question)
+
+    @client.command(name="tinelli")
+    async def sobre(ctx):
+        view = social.TinelliLinksView()
+        await ctx.send("Conheça mais sobre mim! Escolha uma das opções abaixo:", view=view)
+    
+    @client.command(name="desenvolvedores")
+    async def sobre(ctx):
+        view = social.DevsLinksView()
+        await ctx.send("Conheça mais sobre os desenvolvedores! Escolha uma das opções abaixo:", view=view)
 
 client.run(TOKEN)
     
