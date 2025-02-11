@@ -3,3 +3,4 @@ python-dotenv
 yt-dlp
 openai
 db-sqlite3
+pynacl
