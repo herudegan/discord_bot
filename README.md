@@ -40,7 +40,8 @@ Implementação de um sistema de combate simples onde os personagens podem enfre
     ```
 4. Configure o arquivo `.env` com o token do seu bot:
     ```sh
-    BOT_TOKEN=seu_token_aqui
+    discord_token=seu_token_aqui
+    apiKey=sua_key_open_ai
     ```
 5. Execute o bot:
     ```sh
