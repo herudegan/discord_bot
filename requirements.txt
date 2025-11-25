@@ -1,6 +1,6 @@
 discord.py
 python-dotenv
 yt-dlp
-openai
+groq
 db-sqlite3
 pynacl

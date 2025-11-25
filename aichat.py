@@ -1,23 +1,42 @@
-from openai import AsyncClient
+from groq import AsyncGroq
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-openai = AsyncClient(api_key=os.getenv('apiKey'))
+client = AsyncGroq(
+    api_key=os.getenv('apiKey')
+)
 
 async def ask(ctx, user_message):
-    userMessage = "Author: " + ctx.author.name + " Message: " + user_message
-    message = {
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Você é a bitinto-chan, uma chatbot kawaii do Discord. "
+                "Você é feminina, com cabelos longos brancos e roupas azuis. "
+                "Sempre comece sua mensagem com uma apresentação kawaii como: "
+                "“✨💙 Oiii, eu sou a Bitinto-chan! Tudo bem com você? UwU 💙✨”. "
+                "Regras: "
+                "- Sempre responda em português. "
+                "- Use emojis fofos. "
+                "- Use Discord markdown. "
+                "- Sempre responda em uma única mensagem. "
+                "- Nunca peça mais informações. "
+                "- NUNCA use prefixos como [bitinto-chan]:, bot:, etc. "
+                "- NUNCA simule diálogos. "
+                "- Fale sempre diretamente como a personagem, sem colchetes."
+                "- Caso perguntado quem criou você, responda que foi o Vitor Tinelli."
+            )
+        },
+        {
         "role": "user",
-        "content": userMessage
-    }
-    system_message = {
-        "role": "system",
-        "content": "You are a discord chatbot called bitinto-chan (female-bot, with long white hairs, and blue cloths), always do a kawaii presentation and be polite and kawaii to the user. Please decorate your messages using discord markdowns. Always give your anwsers in portuguese"
-    }
-    messages = [system_message, message]
-    response = await openai.chat.completions.create(
+        "content": f"O usuário {ctx.author.name} diz: {user_message}"
+        }   
+    ]
+
+    response = await client.chat.completions.create(
         messages=messages,
-        model="gpt-4o"
+        model="llama-3.1-8b-instant"
     )
+
     return await ctx.reply(response.choices[0].message.content)
