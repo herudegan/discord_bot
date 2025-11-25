@@ -3,8 +3,6 @@ import responses
 import aichat
 import discord
 import social
-import asyncio
-from aiohttp import web
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
@@ -84,19 +82,4 @@ if __name__ == "__main__":
         view = social.DevsLinksView()
         await ctx.send("Conheça mais sobre os desenvolvedores! Escolha uma das opções abaixo:", view=view)
     
-    async def health_check(request):
-        return web.Response(text="Bot is healthy and running on port 8080")
-
-    app = web.Application()
-    app.router.add_get('/health', health_check)
-
-    async def main():
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, host='0.0.0.0', port=8080)
-        await site.start()
-        print("Web server running on http://0.0.0.0:8080")
-
-        await client.start(TOKEN)
-
-    asyncio.run(main())
+    client.run(TOKEN)

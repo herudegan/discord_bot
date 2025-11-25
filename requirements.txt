@@ -4,4 +4,3 @@ yt-dlp
 openai
 db-sqlite3
 pynacl
-aiohttp
