@@ -4,6 +4,7 @@ import aichat
 import discord
 import social
 from discord.ext import commands
+from discord import app_commands
 from dotenv import load_dotenv
 import os
 
@@ -13,45 +14,76 @@ if __name__ == "__main__":
 
     intents = discord.Intents.default()
     intents.message_content = True
-    client = commands.Bot(command_prefix="/", intents=intents)
+    client = commands.Bot(command_prefix="?", intents=intents)
 
     @client.event
     async def on_ready():
-        await client.tree.sync()
-        print(f'I am online now!')
+        try:
+            synced = await client.tree.sync()
+            print(f'I am online now! Synced {len(synced)} commands.')
+        except Exception as e:
+            print(f'Failed to sync commands: {e}')
 
-    @client.command(name="play")
-    async def play(ctx, *, url):
-        await music.play(ctx, url=url)
+    @client.tree.command(name="play", description="Toca uma faixa (suporta pesquisa ou links)")
+    @app_commands.describe(song="O nome da música ou URL do SoundCloud para tocar")
+    async def play(interaction: discord.Interaction, song: str):
+        ctx = await commands.Context.from_interaction(interaction)
+        await interaction.response.defer()
+        await music.play(ctx, url=song)
 
-    @client.command(name="c_queue")
-    async def clear_queue(ctx):
-        await music.clear_queue(ctx)
-
-    @client.command(name="pause")
-    async def pause(ctx):
-        await music.pause(ctx)
-
-    @client.command(name="resume")
-    async def resume(ctx):
-        await music.resume(ctx)
-
-    @client.command(name="stop")
-    async def stop(ctx):
-        await music.stop(ctx)
-    
-    @client.command(name="queue")
-    async def queue(ctx):
+    @client.tree.command(name="queue", description="Mostra a fila de músicas atual")
+    async def queue(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
         await music.queue(ctx)
 
-    @client.command(name="skip")
-    async def skip(ctx):
+    @client.tree.command(name="skip", description="Pula a música atual")
+    async def skip(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
         await music.skip(ctx)
 
-    @client.command(name="leave")
-    async def leave(ctx):
+    @client.tree.command(name="pause", description="Pausa a música atual")
+    async def pause(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
+        await music.pause(ctx)
+
+    @client.tree.command(name="resume", description="Retoma a música pausada")
+    async def resume(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
+        await music.resume(ctx)
+
+    @client.tree.command(name="stop", description="Para a reprodução de música")
+    async def stop(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
+        await music.stop(ctx)
+
+    @client.tree.command(name="leave", description="Desconecte o bot do canal de voz")
+    async def leave(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
         await music.leave(ctx)
 
+    @client.tree.command(name="clear_queue", description="Limpa a fila de músicas")
+    async def clear_queue(interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
+        await music.clear_queue(ctx)
+
+    @client.tree.command(name="ask", description="Pergunte algo para a Bitinto-chan AI")
+    @app_commands.describe(question="Sua pergunta para a AI")
+    async def ask_command(interaction: discord.Interaction, question: str):
+        ctx = await commands.Context.from_interaction(interaction)
+        await interaction.response.defer()
+        await aichat.ask(ctx, question)
+
+    @client.tree.command(name="tinelli", description="Descubra mais sobre mim")
+    async def sobre(interaction: discord.Interaction):
+        view = social.TinelliLinksView()
+        await interaction.response.send_message("Conheça mais sobre mim! Escolha uma das opções abaixo:", view=view)
+    
+    @client.tree.command(name="devs", description="Descubra mais sobre os desenvolvedores")
+    async def devs(interaction: discord.Interaction):
+        view = social.DevsLinksView()
+        await interaction.response.send_message("Conheça mais sobre os desenvolvedores! Escolha uma das opções abaixo:", view=view)
+
+    # ===== PREFIX COMMANDS (Others) =====
     @client.command(name="s_char")
     async def s_char(ctx):
         await responses.s_char(ctx)
@@ -67,19 +99,5 @@ if __name__ == "__main__":
     @client.command(name="s_battle")
     async def s_battle(ctx):
         await responses.s_battle(ctx)
-
-    @client.command(name="ask")
-    async def ask_command(ctx, *, question):  
-        await aichat.ask(ctx, question)
-
-    @client.command(name="tinelli")
-    async def sobre(ctx):
-        view = social.TinelliLinksView()
-        await ctx.send("Conheça mais sobre mim! Escolha uma das opções abaixo:", view=view)
-    
-    @client.command(name="desenvolvedores")
-    async def devs(ctx):
-        view = social.DevsLinksView()
-        await ctx.send("Conheça mais sobre os desenvolvedores! Escolha uma das opções abaixo:", view=view)
     
     client.run(TOKEN)

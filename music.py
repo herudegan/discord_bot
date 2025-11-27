@@ -1,17 +1,18 @@
 import discord
-from discord.ext import commands
-import os
 import asyncio
 import yt_dlp
-from dotenv import load_dotenv
-import urllib.parse, urllib.request, re
 
 queues = {}
 voice_clients = {}
-youtube_base_url = 'https://www.youtube.com/'
-youtube_results_url = youtube_base_url + 'results?'
-youtube_watch_url = youtube_base_url + 'watch?v='
-yt_dl_options = {"format": "bestaudio/best"}
+soundcloud_base_url = 'https://soundcloud.com/'
+
+yt_dl_options = {
+    "format": "bestaudio/best",
+    "http_headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    },
+}
+
 ytdl = yt_dlp.YoutubeDL(yt_dl_options)
 
 ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn -filter:a "volume=0.3"'}
@@ -29,9 +30,11 @@ async def play(ctx, *, url, skip=False):
         queues[ctx.guild.id] = []
 
     if ctx.guild.id in voice_clients and voice_clients[ctx.guild.id].is_playing():
-        final_url = url if youtube_base_url in url else get_youtube_url(url)
+        final_url = url if soundcloud_base_url in url else f"scsearch:{url}"
         loop = asyncio.get_event_loop()
         video_info = await loop.run_in_executor(None, lambda: ytdl.extract_info(final_url, download=False))
+        if 'entries' in video_info:
+            video_info = video_info['entries'][0]
         video_title = video_info['title']
         queues[ctx.guild.id].append(video_title)
         return await ctx.reply(f"{video_title} added to queue!")
@@ -42,11 +45,15 @@ async def play(ctx, *, url, skip=False):
         except:
             voice_client = voice_clients[ctx.guild.id]
         try:
-            if youtube_base_url not in url:
-                url = get_youtube_url(url)
+            if soundcloud_base_url not in url:
+                url = f"scsearch:{url}"
 
             loop = asyncio.get_event_loop()
             data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
+            
+            if 'entries' in data:
+                data = data['entries'][0]
+            
             song = data['url']
             player = discord.FFmpegOpusAudio(song, **ffmpeg_options)
 
@@ -89,7 +96,7 @@ async def clear_queue(ctx):
 async def pause(ctx):
     try:
         voice_clients[ctx.guild.id].pause()
-        return await ctx.reply(f"Paused! Use ?resume to continue playing.")
+        return await ctx.reply(f"Paused! Use /resume to continue playing.")
     except Exception as e:
         print(e)
 
@@ -125,9 +132,3 @@ async def leave(ctx):
         return await ctx.reply(f"Left the voice channel!")
     except Exception as e:
         print(e)
-
-def get_youtube_url(videoName):
-    query_string = urllib.parse.urlencode({'search_query': videoName})
-    content = urllib.request.urlopen(youtube_results_url + query_string)
-    search_results = re.findall(r'/watch\?v=(.{11})', content.read().decode())
-    return youtube_watch_url + search_results[0]
