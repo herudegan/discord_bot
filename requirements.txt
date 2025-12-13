@@ -4,3 +4,4 @@ yt-dlp
 groq
 db-sqlite3
 pynacl
+aiohttp
