@@ -91,7 +91,7 @@ async def criar_historia(interaction: discord.Interaction, titulo: str, conteudo
         embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
         embed.set_footer(text=f"Use /ler_historia para visualizá-la")
         
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         
     except Exception as e:
         embed = discord.Embed(
@@ -138,7 +138,7 @@ async def ler_historia(interaction: discord.Interaction, usuario: discord.Member
         embed.add_field(name="✏️ Modificada em", value=data_modificacao[:10] if data_modificacao else "N/A", inline=True)
         embed.set_footer(text=f"História de {username}")
         
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         
     except Exception as e:
         embed = discord.Embed(
@@ -204,7 +204,7 @@ async def editar_historia(interaction: discord.Interaction, novo_titulo: str = N
             changes.append("📖 Conteúdo atualizado")
         embed.add_field(name="Alterações", value="\n".join(changes), inline=False)
         
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         
     except Exception as e:
         embed = discord.Embed(
