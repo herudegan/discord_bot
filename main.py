@@ -8,6 +8,8 @@ from discord import app_commands
 from dotenv import load_dotenv
 import os
 import asyncio
+import json
+import sqlite3
 from aiohttp import web
 
 if __name__ == "__main__":
@@ -112,16 +114,66 @@ if __name__ == "__main__":
     async def excluir_historia(interaction: discord.Interaction):
         await rpg.excluir_historia(interaction)
 
-    # ============ SERVIDOR HTTP PARA HEALTH CHECK (RENDER) ============
     async def health_check(request):
         """Endpoint de health check para manter o bot ativo no Render"""
         return web.Response(text="Bot is alive!", status=200)
+
+    async def export_db_json(request):
+        """Exporta todos os dados do rpg.db em formato JSON"""
+        auth = request.headers.get('Authorization', '')
+        secret = os.getenv('EXPORT_SECRET', 'meu_secret_temporario')
+        if auth != f'Bearer {secret}':
+            return web.Response(text="Unauthorized", status=401)
+        
+        try:
+            conn = sqlite3.connect('rpg.db')
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT * FROM stories")
+            rows = cursor.fetchall()
+            
+            data = {
+                "stories": [dict(row) for row in rows],
+                "exported_at": str(asyncio.get_event_loop().time())
+            }
+            conn.close()
+            
+            return web.Response(
+                text=json.dumps(data, indent=2, ensure_ascii=False, default=str),
+                content_type='application/json'
+            )
+        except Exception as e:
+            return web.Response(text=f"Error: {str(e)}", status=500)
+
+    async def download_db(request):
+        """Permite download direto do arquivo rpg.db"""
+        auth = request.headers.get('Authorization', '')
+        secret = os.getenv('EXPORT_SECRET', 'meu_secret_temporario')
+        if auth != f'Bearer {secret}':
+            return web.Response(text="Unauthorized", status=401)
+        
+        try:
+            if os.path.exists('rpg.db'):
+                with open('rpg.db', 'rb') as f:
+                    content = f.read()
+                return web.Response(
+                    body=content,
+                    content_type='application/octet-stream',
+                    headers={'Content-Disposition': 'attachment; filename="rpg.db"'}
+                )
+            else:
+                return web.Response(text="Database not found", status=404)
+        except Exception as e:
+            return web.Response(text=f"Error: {str(e)}", status=500)
 
     async def start_web_server():
         """Inicia servidor HTTP na porta definida pelo Render"""
         app = web.Application()
         app.router.add_get('/', health_check)
         app.router.add_get('/health', health_check)
+        app.router.add_get('/export-json', export_db_json)
+        app.router.add_get('/download-db', download_db)
         
         port = int(os.getenv('PORT', 8080))
         runner = web.AppRunner(app)
@@ -129,7 +181,6 @@ if __name__ == "__main__":
         site = web.TCPSite(runner, '0.0.0.0', port)
         await site.start()
         print(f'Health check server running on port {port}')
-    # ===================================================================
     
     async def main():
         await start_web_server()
