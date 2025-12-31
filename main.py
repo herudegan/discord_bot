@@ -10,25 +10,6 @@ import os
 import asyncio
 from aiohttp import web
 
-# ============ SERVIDOR HTTP PARA HEALTH CHECK (RENDER) ============
-async def health_check(request):
-    """Endpoint de health check para manter o bot ativo no Render"""
-    return web.Response(text="Bot is alive!", status=200)
-
-async def start_web_server():
-    """Inicia servidor HTTP na porta definida pelo Render"""
-    app = web.Application()
-    app.router.add_get('/', health_check)
-    app.router.add_get('/health', health_check)
-    
-    port = int(os.getenv('PORT', 8080))
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
-    print(f'Health check server running on port {port}')
-# ===================================================================
-
 if __name__ == "__main__":
     load_dotenv()
     TOKEN = os.getenv('discord_token')
@@ -130,10 +111,43 @@ if __name__ == "__main__":
     @client.tree.command(name="excluir_historia", description="Exclua sua história de RPG")
     async def excluir_historia(interaction: discord.Interaction):
         await rpg.excluir_historia(interaction)
+
+    # ============ SERVIDOR HTTP PARA HEALTH CHECK (RENDER) ============
+    async def health_check(request):
+        """Endpoint de health check para manter o bot ativo no Render"""
+        return web.Response(text="Bot is alive!", status=200)
+
+    async def start_web_server():
+        """Inicia servidor HTTP na porta definida pelo Render"""
+        app = web.Application()
+        app.router.add_get('/', health_check)
+        app.router.add_get('/health', health_check)
+        
+        port = int(os.getenv('PORT', 8080))
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', port)
+        await site.start()
+        print(f'Health check server running on port {port}')
+    # ===================================================================
     
-    # Iniciar bot e servidor HTTP em paralelo
     async def main():
         await start_web_server()
-        await client.start(TOKEN)
+        
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                await client.start(TOKEN)
+                break
+            except discord.errors.HTTPException as e:
+                if e.status == 429:
+                    wait_time = (attempt + 1) * 30  # 30s, 60s, 90s, etc.
+                    print(f"Rate limited! Aguardando {wait_time}s antes de tentar novamente... (tentativa {attempt + 1}/{max_retries})")
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise
+            except Exception as e:
+                print(f"Erro ao conectar: {e}")
+                raise
     
     asyncio.run(main())
